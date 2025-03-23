@@ -6,8 +6,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.plugin.Plugin;
 
 import java.nio.file.Path;
+import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
 
 public class SchematicUtils {
     public static void saveSchematic(Path path, Location one, Location two, Location center) {
@@ -67,4 +71,28 @@ public class SchematicUtils {
         });
         return backUp;
     }
+
+    public static void pasteSchematicInterval(Plugin plugin, Int2ObjectArrayMap<BlockData> blocks, Location center, Duration interval, Consumer<ObjectArrayList<BlockState>> pastedHandler) {
+        ObjectArrayList<BlockState> backUp = new ObjectArrayList<>();
+        AtomicInteger remainingTasks = new AtomicInteger(blocks.size()); // Количество задач
+
+        blocks.int2ObjectEntrySet().fastForEach(entry -> {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                int offset = entry.getIntKey();
+                BlockData blockData = entry.getValue();
+                int x = (byte) (offset >>> 16) + center.getBlockX();
+                int y = (byte) (offset >>> 8) + center.getBlockY();
+                int z = (byte) offset + center.getBlockZ();
+                Location location = new Location(center.getWorld(), x, y, z);
+                backUp.add(location.getBlock().getState());
+
+                location.getBlock().setBlockData(blockData, false);
+
+                if (remainingTasks.decrementAndGet() == 0) {
+                    pastedHandler.accept(backUp);
+                }
+            }, interval.toSeconds() * 20L);
+        });
+    }
+
 }
