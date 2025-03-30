@@ -75,6 +75,7 @@ public class SchematicUtils {
     public static void pasteSchematicInterval(Plugin plugin, Int2ObjectArrayMap<BlockData> blocks, Location center, Duration interval, Consumer<ObjectArrayList<BlockState>> pastedHandler) {
         ObjectArrayList<BlockState> backUp = new ObjectArrayList<>();
         AtomicInteger remainingTasks = new AtomicInteger(blocks.size()); // Количество задач
+        AtomicInteger currentPosition = new AtomicInteger();
 
         blocks.int2ObjectEntrySet().fastForEach(entry -> {
             int offset = entry.getIntKey();
@@ -85,13 +86,15 @@ public class SchematicUtils {
             Location location = new Location(center.getWorld(), x, y, z);
             backUp.add(location.getBlock().getState());
 
+            long delay = currentPosition.getAndIncrement() * interval.toSeconds() * 20L;
+
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 location.getBlock().setBlockData(blockData, false);
 
                 if (remainingTasks.decrementAndGet() == 0) {
                     pastedHandler.accept(backUp);
                 }
-            }, interval.toSeconds() * 20L);
+            }, delay);
         });
     }
 }
