@@ -77,15 +77,15 @@ public class SchematicUtils {
         AtomicInteger remainingTasks = new AtomicInteger(blocks.size()); // Количество задач
 
         blocks.int2ObjectEntrySet().fastForEach(entry -> {
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                int offset = entry.getIntKey();
-                BlockData blockData = entry.getValue();
-                int x = (byte) (offset >>> 16) + center.getBlockX();
-                int y = (byte) (offset >>> 8) + center.getBlockY();
-                int z = (byte) offset + center.getBlockZ();
-                Location location = new Location(center.getWorld(), x, y, z);
-                backUp.add(location.getBlock().getState());
+            int offset = entry.getIntKey();
+            BlockData blockData = entry.getValue();
+            int x = (byte) (offset >>> 16) + center.getBlockX();
+            int y = (byte) (offset >>> 8) + center.getBlockY();
+            int z = (byte) offset + center.getBlockZ();
+            Location location = new Location(center.getWorld(), x, y, z);
+            backUp.add(location.getBlock().getState());
 
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 location.getBlock().setBlockData(blockData, false);
 
                 if (remainingTasks.decrementAndGet() == 0) {
@@ -94,5 +94,4 @@ public class SchematicUtils {
             }, interval.toSeconds() * 20L);
         });
     }
-
 }
