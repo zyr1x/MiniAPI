@@ -43,8 +43,8 @@ public class SchematicUtils {
     }
 
     public static Int2ObjectArrayMap<BlockData> loadSchematic(Path path) {
-        Int2ObjectArrayMap<BlockData> blocks = new Int2ObjectArrayMap<>();
-        BinIO.read(path, input -> {
+        return BinIO.read(path, input -> {
+            Int2ObjectArrayMap<BlockData> blocks = new Int2ObjectArrayMap<>();
             while (input.available() > 0) {
                 String blockDataString = input.readUTF();
                 BlockData blockData = Bukkit.createBlockData(blockDataString);
@@ -52,8 +52,8 @@ public class SchematicUtils {
 
                 blocks.put(packedCoords, blockData);
             }
+            return blocks;
         });
-        return blocks;
     }
 
     public static ObjectArrayList<BlockState> pasteSchematic(Int2ObjectArrayMap<BlockData> blocks, Location center) {
