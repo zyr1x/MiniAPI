@@ -4,6 +4,7 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.plugin.Plugin;
@@ -80,10 +81,7 @@ public class SchematicUtils {
         blocks.int2ObjectEntrySet().fastForEach(entry -> {
             int offset = entry.getIntKey();
             BlockData blockData = entry.getValue();
-            int x = (byte) (offset >>> 16) + center.getBlockX();
-            int y = (byte) (offset >>> 8) + center.getBlockY();
-            int z = (byte) offset + center.getBlockZ();
-            Location location = new Location(center.getWorld(), x, y, z);
+            Location location = getLocationFromInt(offset, center);
             backUp.add(location.getBlock().getState());
 
             long delay = currentPosition.getAndIncrement() * (interval.toMillis() / 50L);
@@ -96,5 +94,13 @@ public class SchematicUtils {
                 }
             }, delay);
         });
+    }
+
+    public static Location getLocationFromInt(int offset, Location center) {
+        int x = (byte) (offset >>> 16) + center.getBlockX();
+        int y = (byte) (offset >>> 8) + center.getBlockY();
+        int z = (byte) offset + center.getBlockZ();
+
+        return new Location(center.getWorld(), x, y, z);
     }
 }
