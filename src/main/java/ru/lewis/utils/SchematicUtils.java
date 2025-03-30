@@ -86,7 +86,7 @@ public class SchematicUtils {
             Location location = new Location(center.getWorld(), x, y, z);
             backUp.add(location.getBlock().getState());
 
-            long delay = currentPosition.getAndIncrement() * interval.toSeconds() * 20L;
+            long delay = currentPosition.getAndIncrement() * (interval.toMillis() / 50L);
 
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
                 location.getBlock().setBlockData(blockData, false);
