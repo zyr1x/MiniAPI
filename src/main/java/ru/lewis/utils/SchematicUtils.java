@@ -96,6 +96,30 @@ public class SchematicUtils {
         });
     }
 
+    public static void pasteSchematicInterval(Plugin plugin, Int2ObjectArrayMap<BlockData> blocks, Location center, Duration interval, Runnable onPasted, Consumer<ObjectArrayList<BlockState>> pastedHandler) {
+        ObjectArrayList<BlockState> backUp = new ObjectArrayList<>();
+        AtomicInteger remainingTasks = new AtomicInteger(blocks.size()); // Количество задач
+        AtomicInteger currentPosition = new AtomicInteger();
+
+        blocks.int2ObjectEntrySet().fastForEach(entry -> {
+            int offset = entry.getIntKey();
+            BlockData blockData = entry.getValue();
+            Location location = getLocationFromInt(offset, center);
+            backUp.add(location.getBlock().getState());
+
+            long delay = currentPosition.getAndIncrement() * (interval.toMillis() / 50L);
+
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                onPasted.run();
+                location.getBlock().setBlockData(blockData, false);
+
+                if (remainingTasks.decrementAndGet() == 0) {
+                    pastedHandler.accept(backUp);
+                }
+            }, delay);
+        });
+    }
+
     public static Location getLocationFromInt(int offset, Location center) {
         int x = (byte) (offset >>> 16) + center.getBlockX();
         int y = (byte) (offset >>> 8) + center.getBlockY();
